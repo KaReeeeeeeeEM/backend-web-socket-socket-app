@@ -10,6 +10,7 @@ require('dotenv').config();
 
 // Routes
 const userRoutes = require('./routes/userRoutes');
+const uploadRoutes = require('./routes/uploadRoute');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
@@ -37,5 +38,6 @@ app.use(cookieParser());
 
 
 app.use('/api/users', userRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.listen(process.env.PORT, () => console.log(`Server running at port ${process.env.PORT}`))

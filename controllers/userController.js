@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 exports.createUser = async (req,res) => {
-    const { username, email, password } = req.body;
+    const { username, email, img, password } = req.body;
     try {
       const userExists = await User.findOne({ email });
   
@@ -16,6 +16,7 @@ exports.createUser = async (req,res) => {
         username,
         email,
         password,
+        profile: img
       });
   
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -34,9 +35,9 @@ exports.createUser = async (req,res) => {
 }
 
 exports.loginUser = async (req,res) => {
-    const { email, password } = req.body;
+    const { usernameOrEmail, password } = req.body;
     try {
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ usernameOrEmail });
   
       if (user && (await user.matchPassword(password))) {
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -52,6 +53,45 @@ exports.loginUser = async (req,res) => {
       } else {
         res.status(400).json({ message: 'Invalid email or password' });
       }
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  // find a user by id
+  exports.getUserById = async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id);
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  // update user profile
+  exports.updateUserProfile = async (req, res) => {
+    const { username, img } = req.body;
+  
+    try {
+      const updatedUser = await User.findByIdAndUpdate(req.user.id, { username, profile: img }, { new: true });
+  
+      res.json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+
+  //delete user by id
+  exports.deleteUser = async (req, res) => {
+    try {
+      await User.findByIdAndDelete(req.user.id);
+  
+      res.json({ message: 'User deleted' });
     } catch (error) {
       res.status(500).json({ message: 'Server error' });
     }
